@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export default function AdminPanel() {
   const router = useRouter();
@@ -92,6 +93,7 @@ export default function AdminPanel() {
       setFormData({ name: '', description: '', category: '', price: '', image: '' });
       setEditingId(null);
       fetchServices();
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -108,7 +110,7 @@ export default function AdminPanel() {
       image: service.image || '',
     });
     setEditingId(service.id);
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id) => {
@@ -119,6 +121,7 @@ export default function AdminPanel() {
       if (!res.ok) throw new Error('Failed to delete');
       setSuccess('Service deleted successfully!');
       fetchServices();
+      setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
       setError(err.message);
     }
@@ -150,99 +153,112 @@ export default function AdminPanel() {
 
   if (!isAuthenticated) {
     return (
-      <div style={{ fontFamily: 'Arial', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p>Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-brand-yellow mb-4"></div>
+          <p className="text-gray-600 text-lg">Loading...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ fontFamily: 'Arial', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
-      <header style={{ background: '#000', color: '#FFD700', padding: '20px', textAlign: 'center', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Admin Panel - Manage Services</h1>
-        <button
-          onClick={handleLogout}
-          style={{
-            background: '#f44336',
-            color: '#fff',
-            padding: '10px 20px',
-            border: 'none',
-            borderRadius: '4px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-          }}
-        >
-          Logout
-        </button>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-black text-brand-yellow py-6 px-4 shadow-xl sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-center md:text-left">
+            <h1 className="text-3xl md:text-4xl font-bold">Admin Panel</h1>
+            <p className="text-sm md:text-base text-yellow-300">Manage Services</p>
+          </div>
+          <div className="flex gap-4">
+            <Link href="/" className="bg-white text-black font-bold py-2 px-6 rounded-lg hover:bg-gray-200 transition-all duration-300">
+              View Site
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
       </header>
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-        {/* Form Section */}
-        <div style={{ background: '#fff', padding: '30px', borderRadius: '8px', marginBottom: '30px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ color: '#000', marginBottom: '20px' }}>
-            {editingId ? 'Edit Service' : 'Add New Service'}
-          </h2>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg animate-fade-in flex items-center">
+            <span className="mr-2">⚠️</span>
+            <span className="font-semibold">{error}</span>
+            <button onClick={() => setError('')} className="ml-auto text-red-700 hover:text-red-900">✕</button>
+          </div>
+        )}
+        {success && (
+          <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-lg animate-fade-in flex items-center">
+            <span className="mr-2">✓</span>
+            <span className="font-semibold">{success}</span>
+            <button onClick={() => setSuccess('')} className="ml-auto text-green-700 hover:text-green-900">✕</button>
+          </div>
+        )}
 
-          {error && (
-            <div style={{ background: '#fee', color: '#c33', padding: '12px', borderRadius: '4px', marginBottom: '15px' }}>
-              {error}
+        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-brand-yellow rounded-full flex items-center justify-center text-2xl">
+              {editingId ? '✏️' : '➕'}
             </div>
-          )}
-          {success && (
-            <div style={{ background: '#efe', color: '#3c3', padding: '12px', borderRadius: '4px', marginBottom: '15px' }}>
-              {success}
-            </div>
-          )}
+            <h2 className="text-2xl md:text-3xl font-bold text-black">
+              {editingId ? 'Edit Service' : 'Add New Service'}
+            </h2>
+          </div>
 
-          <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Service Name *</label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-gray-700 font-semibold mb-2">Service Name *</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
                 required
-                style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
-                placeholder="e.g., Plumbing Service"
+                className="input-field"
+                placeholder="e.g., Expert Plumbing Service"
               />
             </div>
 
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description *</label>
+            <div>
+              <label className="block text-gray-700 font-semibold mb-2">Description *</label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
                 required
                 rows="4"
-                style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box', fontFamily: 'Arial' }}
-                placeholder="Describe the service..."
+                className="input-field resize-none"
+                placeholder="Describe the service in detail..."
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Category *</label>
+                <label className="block text-gray-700 font-semibold mb-2">Category *</label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
                   required
-                  style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
+                  className="input-field"
                 >
                   <option value="">Select Category</option>
-                  <option value="Automobile">Automobile Engineers</option>
-                  <option value="Electrical">Electricians</option>
-                  <option value="Plumbing">Plumbers</option>
-                  <option value="Construction">Masons</option>
-                  <option value="Cleaning">Cleaners</option>
-                  <option value="Other">Other</option>
+                  <option value="Automobile">🚗 Automobile Engineers</option>
+                  <option value="Electrical">⚡ Electricians</option>
+                  <option value="Plumbing">🔧 Plumbers</option>
+                  <option value="Construction">🏗️ Masons</option>
+                  <option value="Cleaning">🧹 Cleaners</option>
+                  <option value="Other">⚙️ Other</option>
                 </select>
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Price/Rate *</label>
+                <label className="block text-gray-700 font-semibold mb-2">Price/Rate (₹) *</label>
                 <input
                   type="number"
                   name="price"
@@ -251,54 +267,47 @@ export default function AdminPanel() {
                   required
                   step="0.01"
                   min="0"
-                  style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
-                  placeholder="e.g., 500.00"
+                  className="input-field"
+                  placeholder="500.00"
                 />
               </div>
             </div>
 
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Image URL</label>
+            <div>
+              <label className="block text-gray-700 font-semibold mb-2">Image URL (optional)</label>
               <input
                 type="url"
                 name="image"
                 value={formData.image}
                 onChange={handleInputChange}
-                style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ddd', boxSizing: 'border-box' }}
+                className="input-field"
                 placeholder="https://example.com/image.jpg"
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="flex gap-4 pt-4">
               <button
                 type="submit"
                 disabled={loading}
-                style={{
-                  background: '#FFD700',
-                  color: '#000',
-                  padding: '12px 20px',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontWeight: 'bold',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.5 : 1,
-                }}
+                className={`btn-primary ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                {loading ? 'Saving...' : editingId ? 'Update Service' : 'Add Service'}
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  </span>
+                ) : (
+                  editingId ? '💾 Update Service' : '➕ Add Service'
+                )}
               </button>
               {editingId && (
                 <button
                   type="button"
                   onClick={handleCancel}
-                  style={{
-                    background: '#999',
-                    color: '#fff',
-                    padding: '12px 20px',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                  }}
+                  className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300"
                 >
                   Cancel
                 </button>
@@ -307,59 +316,69 @@ export default function AdminPanel() {
           </form>
         </div>
 
-        {/* Services List Section */}
-        <div style={{ background: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ color: '#000', marginBottom: '20px' }}>All Services ({services.length})</h2>
+        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-brand-yellow rounded-full flex items-center justify-center text-2xl">
+                📋
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-black">
+                All Services ({services.length})
+              </h2>
+            </div>
+          </div>
 
           {services.length === 0 ? (
-            <p style={{ color: '#666' }}>No services added yet. Create your first service above!</p>
+            <div className="text-center py-16 bg-gray-50 rounded-xl">
+              <div className="text-6xl mb-4">📝</div>
+              <p className="text-xl text-gray-600 font-semibold">No services added yet</p>
+              <p className="text-gray-500 mt-2">Create your first service above to get started!</p>
+            </div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div className="overflow-x-auto">
+              <table className="w-full">
                 <thead>
-                  <tr style={{ background: '#f9f9f9', borderBottom: '2px solid #ddd' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Name</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Category</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Description</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Price</th>
-                    <th style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold' }}>Actions</th>
+                  <tr className="bg-gray-50 border-b-2 border-gray-200">
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">Service</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider hidden md:table-cell">Category</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider hidden lg:table-cell">Description</th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">Price</th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-200">
                   {services.map(service => (
-                    <tr key={service.id} style={{ borderBottom: '1px solid #eee' }}>
-                      <td style={{ padding: '12px' }}>{service.name}</td>
-                      <td style={{ padding: '12px' }}>{service.category}</td>
-                      <td style={{ padding: '12px', maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{service.description}</td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>₹{service.price.toFixed(2)}</td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <button
-                          onClick={() => handleEdit(service)}
-                          style={{
-                            background: '#4CAF50',
-                            color: '#fff',
-                            padding: '8px 12px',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            marginRight: '8px',
-                          }}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(service.id)}
-                          style={{
-                            background: '#f44336',
-                            color: '#fff',
-                            padding: '8px 12px',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Delete
-                        </button>
+                    <tr key={service.id} className="hover:bg-gray-50 transition-colors duration-200">
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-gray-900">{service.name}</div>
+                        <div className="md:hidden text-sm text-gray-600 mt-1">{service.category}</div>
+                      </td>
+                      <td className="px-6 py-4 hidden md:table-cell">
+                        <span className="inline-block bg-brand-yellow text-black px-3 py-1 rounded-full text-sm font-semibold">
+                          {service.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 hidden lg:table-cell max-w-xs">
+                        <p className="text-gray-600 text-sm line-clamp-2">{service.description}</p>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className="text-lg font-bold text-brand-yellow">₹{service.price.toFixed(2)}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => handleEdit(service)}
+                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(service.id)}
+                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -368,19 +387,12 @@ export default function AdminPanel() {
             </div>
           )}
         </div>
-
-        <div style={{ marginTop: '20px', textAlign: 'center' }}>
-          <a
-            href="/"
-            style={{ color: '#FFD700', textDecoration: 'none', fontWeight: 'bold' }}
-          >
-            ← Back to Home
-          </a>
-        </div>
       </div>
 
-      <footer style={{ background: '#000', color: '#fff', textAlign: 'center', padding: '10px', marginTop: '30px' }}>
-        © 2026 Help-Me Admin Panel
+      <footer className="bg-black text-white py-8 px-4 mt-12">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="text-gray-400">© 2026 Help-Me Admin Panel</p>
+        </div>
       </footer>
     </div>
   );
